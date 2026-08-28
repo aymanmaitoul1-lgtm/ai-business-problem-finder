@@ -36,4 +36,13 @@ Explain the solutions clearly and keep them realistic for a small business.
 data = response.json()
 
 print("\n--- AI BUSINESS ANALYSIS ---\n")
+print("\n" + "=" * 60)
+print("        AI BUSINESS PROBLEM FINDER")
+print("=" * 60)
+print(f"Business: {business}")
+print(f"Location: {location}")
+print(f"Employees: {employees}")
+print("-" * 60)
+print("\nAI ANALYSIS\n")
 print(data["choices"][0]["message"]["content"])
+print("\n" + "=" * 60)
