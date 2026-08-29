@@ -1,4 +1,5 @@
 import os
+import json
 import requests
 
 api_key = os.getenv("OPENROUTER_API_KEY")
@@ -14,36 +15,54 @@ Business type: {business}
 Location: {location}
 Number of employees: {employees}
 
-Act as an AI business automation consultant.
-
 Find the 3 most important and realistic operational problems this business is likely to face.
 
-For EACH problem, use exactly this format:
+Return ONLY valid JSON.
+Do not use markdown.
+Do not use code fences.
+Do not write anything before or after the JSON.
 
-1. PROBLEM NAME
-Problem: [1-2 short sentences]
-AI Solution: [1-2 short sentences]
-Impact: [Low / Medium / High + one short reason]
+Use exactly this structure:
 
-Keep each problem under 40 words.
-
-After the 3 problems, provide:
-
-ASSUMPTIONS:
-- [maximum 3 short bullet points]
-
-RECOMMENDATIONS:
-1. [short recommendation]
-2. [short recommendation]
-3. [short recommendation]
+{{
+  "problems": [
+    {{
+      "name": "Short problem name",
+      "problem": "1-2 short sentences",
+      "solution": "1-2 short sentences",
+      "impact": "High"
+    }},
+    {{
+      "name": "Short problem name",
+      "problem": "1-2 short sentences",
+      "solution": "1-2 short sentences",
+      "impact": "Medium"
+    }},
+    {{
+      "name": "Short problem name",
+      "problem": "1-2 short sentences",
+      "solution": "1-2 short sentences",
+      "impact": "Low"
+    }}
+  ],
+  "assumptions": [
+    "Short assumption",
+    "Short assumption"
+  ],
+  "recommendations": [
+    "Short recommendation",
+    "Short recommendation",
+    "Short recommendation"
+  ]
+}}
 
 IMPORTANT:
-- Be specific to this business and its size.
+- Create exactly 3 problems.
+- Make the problems specific to this business and its size.
 - Avoid generic advice.
-- Do not invent statistics, regulations, revenue figures, or facts.
-- Clearly label estimates or assumptions.
-- Keep everything concise and professional.
-- Do not write long explanations.
+- Do not invent statistics, regulations, revenue figures, or other facts.
+- Clearly label uncertain information as assumptions.
+- Keep everything concise.
 """
 
 response = requests.post(
@@ -68,6 +87,10 @@ response.raise_for_status()
 
 data = response.json()
 
+ai_text = data["choices"][0]["message"]["content"]
+
+analysis = json.loads(ai_text)
+
 print("\n" + "=" * 60)
 print("AI BUSINESS PROBLEM FINDER")
 print("=" * 60)
@@ -75,6 +98,22 @@ print(f"Business: {business}")
 print(f"Location: {location}")
 print(f"Employees: {employees}")
 print("=" * 60)
+
 print("\nAI ANALYSIS\n")
-print(data["choices"][0]["message"]["content"])
+
+for number, problem in enumerate(analysis["problems"], start=1):
+    print(f"{number}. {problem['name']}")
+    print(f"Problem: {problem['problem']}")
+    print(f"AI Solution: {problem['solution']}")
+    print(f"Impact: {problem['impact']}")
+    print()
+
+print("ASSUMPTIONS")
+for assumption in analysis["assumptions"]:
+    print(f"- {assumption}")
+
+print("\nRECOMMENDATIONS")
+for number, recommendation in enumerate(analysis["recommendations"], start=1):
+    print(f"{number}. {recommendation}")
+
 print("\n" + "=" * 60)
