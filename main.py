@@ -10,9 +10,9 @@ employees = input("How many employees does it have? ")
 prompt = f"""
 Analyze this business:
 
-Business: {business}
+Business type: {business}
 Location: {location}
-Employees: {employees}
+Number of employees: {employees}
 
 Act as an AI business automation consultant.
 
@@ -25,7 +25,7 @@ Problem: [1-2 short sentences]
 AI Solution: [1-2 short sentences]
 Impact: [Low / Medium / High + one short reason]
 
-Keep each problem under 60 words.
+Keep each problem under 40 words.
 
 After the 3 problems, provide:
 
