@@ -10,46 +10,40 @@ employees = input("How many employees does it have? ")
 prompt = f"""
 Analyze this business:
 
-Business type: {business}
+Business: {business}
 Location: {location}
-Number of employees: {employees}
+Employees: {employees}
 
 Act as an AI business automation consultant.
 
-Identify the 3 most important and realistic operational problems this business is likely to face.
+Find the 3 most important and realistic operational problems this business is likely to face.
 
-For each problem, provide:
+For EACH problem, use exactly this format:
 
-PROBLEM:
-Clearly describe the problem.
+1. PROBLEM NAME
+Problem: [1-2 short sentences]
+AI Solution: [1-2 short sentences]
+Impact: [Low / Medium / High + one short reason]
 
-WHY IT MATTERS:
-Explain why this problem could matter to the business.
+Keep each problem under 60 words.
 
-AI SOLUTION:
-Suggest one practical AI or automation solution.
-
-HOW IT HELPS:
-Explain how the solution could improve the business.
-
-EXPECTED IMPACT:
-Choose Low, Medium, or High and explain why.
-
-IMPORTANT RULES:
-- Focus specifically on this type and size of business.
-- Avoid generic problems that could apply to every business.
-- Do not invent statistics, regulations, revenue figures, or other facts.
-- If you make an estimate or assumption, clearly label it as an estimate or assumption.
-- Keep the recommendations realistic for a small business.
-- Keep the final answer concise and professional.
-
-At the end, provide:
+After the 3 problems, provide:
 
 ASSUMPTIONS:
-List important assumptions you made.
+- [maximum 3 short bullet points]
 
 RECOMMENDATIONS:
-Give 3 short recommendations for the business.
+1. [short recommendation]
+2. [short recommendation]
+3. [short recommendation]
+
+IMPORTANT:
+- Be specific to this business and its size.
+- Avoid generic advice.
+- Do not invent statistics, regulations, revenue figures, or facts.
+- Clearly label estimates or assumptions.
+- Keep everything concise and professional.
+- Do not write long explanations.
 """
 
 response = requests.post(
