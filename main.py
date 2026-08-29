@@ -16,21 +16,40 @@ Number of employees: {employees}
 
 Act as an AI business automation consultant.
 
-Analyze the business based on its type, location, and size.
-
 Identify the 3 most important and realistic operational problems this business is likely to face.
 
-For each problem:
+For each problem, provide:
 
-1. Explain the problem clearly.
-2. Explain why it matters to the business.
-3. Propose one practical AI or automation solution.
-4. Explain how the solution would help.
-5. Estimate the potential impact as Low, Medium, or High.
+PROBLEM:
+Clearly describe the problem.
 
-Avoid generic advice. Focus on problems that are specifically relevant to this type and size of business.
+WHY IT MATTERS:
+Explain why this problem could matter to the business.
 
-Give the answer in a clear and professional format.
+AI SOLUTION:
+Suggest one practical AI or automation solution.
+
+HOW IT HELPS:
+Explain how the solution could improve the business.
+
+EXPECTED IMPACT:
+Choose Low, Medium, or High and explain why.
+
+IMPORTANT RULES:
+- Focus specifically on this type and size of business.
+- Avoid generic problems that could apply to every business.
+- Do not invent statistics, regulations, revenue figures, or other facts.
+- If you make an estimate or assumption, clearly label it as an estimate or assumption.
+- Keep the recommendations realistic for a small business.
+- Keep the final answer concise and professional.
+
+At the end, provide:
+
+ASSUMPTIONS:
+List important assumptions you made.
+
+RECOMMENDATIONS:
+Give 3 short recommendations for the business.
 """
 
 response = requests.post(
