@@ -1,119 +1,194 @@
 import os
 import json
 import requests
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
 
 api_key = os.getenv("OPENROUTER_API_KEY")
 
-business = input("What type of business do you want to analyze? ")
-location = input("Where is the business located? ")
-employees = input("How many employees does it have? ")
 
-prompt = f"""
+PROMPT_TEMPLATE = """
 Analyze this business:
 
-Business type: {business}
+Business: {business}
 Location: {location}
-Number of employees: {employees}
+Employees: {employees}
+
+Act as an AI business automation consultant.
 
 Find the 3 most important and realistic operational problems this business is likely to face.
 
-Return ONLY valid JSON.
-Do not use markdown.
-Do not use code fences.
-Do not write anything before or after the JSON.
+For EACH problem, use exactly this format:
 
-Use exactly this structure:
+1. PROBLEM NAME
+Problem: [1-2 short sentences]
+AI Solution: [1-2 short sentences]
+Impact: [Low / Medium / High + one short reason]
 
-{{
-  "problems": [
-    {{
-      "name": "Short problem name",
-      "problem": "1-2 short sentences",
-      "solution": "1-2 short sentences",
-      "impact": "High"
-    }},
-    {{
-      "name": "Short problem name",
-      "problem": "1-2 short sentences",
-      "solution": "1-2 short sentences",
-      "impact": "Medium"
-    }},
-    {{
-      "name": "Short problem name",
-      "problem": "1-2 short sentences",
-      "solution": "1-2 short sentences",
-      "impact": "Low"
-    }}
-  ],
-  "assumptions": [
-    "Short assumption",
-    "Short assumption"
-  ],
-  "recommendations": [
-    "Short recommendation",
-    "Short recommendation",
-    "Short recommendation"
-  ]
-}}
+Keep each problem under 40 words.
+
+After the 3 problems, provide:
+
+ASSUMPTIONS:
+- [maximum 3 short bullet points]
+
+RECOMMENDATIONS:
+1. [short recommendation]
+2. [short recommendation]
+3. [short recommendation]
 
 IMPORTANT:
-- Create exactly 3 problems.
-- Make the problems specific to this business and its size.
+- Be specific to this business and its size.
 - Avoid generic advice.
-- Do not invent statistics, regulations, revenue figures, or other facts.
-- Clearly label uncertain information as assumptions.
-- Keep everything concise.
+- Do not invent statistics, regulations, revenue figures, or facts.
+- Clearly label estimates or assumptions.
+- Keep everything concise and professional.
+- Do not write long explanations.
 """
 
-response = requests.post(
-    "https://openrouter.ai/api/v1/chat/completions",
-    headers={
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    },
-    json={
-        "model": "openrouter/free",
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-    },
-    timeout=60
-)
 
-response.raise_for_status()
+def analyze_business(business, location, employees):
+    prompt = PROMPT_TEMPLATE.format(
+        business=business,
+        location=location,
+        employees=employees
+    )
 
-data = response.json()
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "openrouter/free",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+        },
+        timeout=60
+    )
 
-ai_text = data["choices"][0]["message"]["content"]
+    response.raise_for_status()
 
-analysis = json.loads(ai_text)
+    data = response.json()
 
-print("\n" + "=" * 60)
+    content = data["choices"][0]["message"]["content"]
+
+    return content
+
+
+class RequestHandler(BaseHTTPRequestHandler):
+
+    def send_json(self, data, status=200):
+        response = json.dumps(data).encode("utf-8")
+
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(response)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        self.wfile.write(response)
+
+    def do_GET(self):
+
+        if self.path.split("?", 1)[0] == "/":
+            try:
+                with open("index.html", "rb") as file:
+                    html = file.read()
+
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html")
+                self.send_header("Content-Length", str(len(html)))
+                self.end_headers()
+
+                self.wfile.write(html)
+
+            except FileNotFoundError:
+                self.send_json(
+                    {"error": "index.html was not found."},
+                    404
+                )
+
+        else:
+            self.send_json(
+                {"error": "Page not found."},
+                404
+            )
+
+    def do_POST(self):
+
+        if self.path != "/analyze":
+            self.send_json(
+                {"error": "Endpoint not found."},
+                404
+            )
+            return
+
+        try:
+            content_length = int(
+                self.headers.get("Content-Length", 0)
+            )
+
+            body = self.rfile.read(content_length)
+
+            user_data = json.loads(body)
+
+            business = user_data.get("business", "").strip()
+            location = user_data.get("location", "").strip()
+            employees = user_data.get("employees", "").strip()
+
+            if not business or not location or not employees:
+                self.send_json(
+                    {"error": "Please fill in all fields."},
+                    400
+                )
+                return
+
+            result = analyze_business(
+                business,
+                location,
+                employees
+            )
+
+            self.send_json(
+                {
+                    "success": True,
+                    "analysis": result
+                }
+            )
+
+        except requests.exceptions.RequestException as error:
+            self.send_json(
+                {
+                    "error": f"AI request failed: {str(error)}"
+                },
+                500
+            )
+
+        except Exception as error:
+            self.send_json(
+                {
+                    "error": str(error)
+                },
+                500
+            )
+
+
+print("=" * 60)
 print("AI BUSINESS PROBLEM FINDER")
 print("=" * 60)
-print(f"Business: {business}")
-print(f"Location: {location}")
-print(f"Employees: {employees}")
+print("Server running at:")
+print("http://localhost:8000")
 print("=" * 60)
 
-print("\nAI ANALYSIS\n")
+server = ThreadingHTTPServer(
+    ("localhost", 8000),
+    RequestHandler
+)
 
-for number, problem in enumerate(analysis["problems"], start=1):
-    print(f"{number}. {problem['name']}")
-    print(f"Problem: {problem['problem']}")
-    print(f"AI Solution: {problem['solution']}")
-    print(f"Impact: {problem['impact']}")
-    print()
-
-print("ASSUMPTIONS")
-for assumption in analysis["assumptions"]:
-    print(f"- {assumption}")
-
-print("\nRECOMMENDATIONS")
-for number, recommendation in enumerate(analysis["recommendations"], start=1):
-    print(f"{number}. {recommendation}")
-
-print("\n" + "=" * 60)
+server.serve_forever()

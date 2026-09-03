@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Business Problem Finder</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --background: #070b14;
+            --surface: rgba(17, 24, 39, 0.72);
+            --surface-solid: #111827;
+            --border: rgba(255, 255, 255, 0.10);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+            --danger: #f87171;
+            --success: #34d399;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(
+                    circle at 15% 15%,
+                    rgba(139, 92, 246, 0.22),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 80%,
+                    rgba(59, 130, 246, 0.18),
+                    transparent 30%
+                ),
+                var(--background);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(
+                    rgba(255,255,255,0.025) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.025) 1px,
+                    transparent 1px
+                );
+            background-size: 50px 50px;
+            mask-image: linear-gradient(
+                to bottom,
+                black,
+                transparent 80%
+            );
+        }
+
+        .container {
+            width: min(1050px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 70px 0 80px;
+        }
+
+        /* HERO */
+
+        .hero {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            margin-bottom: 22px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #c4b5fd;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            backdrop-filter: blur(12px);
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
+        }
+
+        h1 {
+            font-size: clamp(42px, 7vw, 76px);
+            line-height: 0.98;
+            letter-spacing: -0.055em;
+            font-weight: 800;
+            margin-bottom: 22px;
+            background: linear-gradient(
+                135deg,
+                #ffffff 20%,
+                #c4b5fd 55%,
+                #818cf8 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            max-width: 650px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        /* FORM */
+
+        .glass-card {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+        }
+
+        .form-card {
+            padding: 32px;
+            border-radius: 24px;
+            margin-bottom: 55px;
+        }
+
+        .form-header {
+            margin-bottom: 28px;
+        }
+
+        .form-header h2 {
+            font-size: 22px;
+            margin-bottom: 7px;
+        }
+
+        .form-header p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 17px;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 13px;
+            outline: none;
+            background: rgba(2, 6, 23, 0.65);
+            color: white;
+            font-size: 16px;
+            transition: 0.25s ease;
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        input:focus {
+            border-color: rgba(139, 92, 246, 0.8);
+            box-shadow:
+                0 0 0 4px rgba(139, 92, 246, 0.12),
+                0 0 25px rgba(139, 92, 246, 0.08);
+        }
+
+        .analyze-button {
+            position: relative;
+            width: 100%;
+            margin-top: 5px;
+            padding: 17px 22px;
+            border: none;
+            border-radius: 13px;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(
+                135deg,
+                #7c3aed,
+                #4f46e5
+            );
+            box-shadow:
+                0 12px 30px rgba(79, 70, 229, 0.30);
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        .analyze-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 18px 38px rgba(79, 70, 229, 0.42);
+        }
+
+        .analyze-button:active {
+            transform: translateY(0);
+        }
+
+        .analyze-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+            transform: none;
+        }
+
+        /* LOADING */
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 35px 0;
+            color: var(--muted);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 34px;
+            height: 34px;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(255,255,255,0.10);
+            border-top-color: var(--accent-light);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* RESULTS */
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .results-heading {
+            margin-bottom: 22px;
+        }
+
+        .results-heading span {
+            display: block;
+            color: #a78bfa;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .results-heading h2 {
+            font-size: 34px;
+            letter-spacing: -0.03em;
+        }
+
+        .problem-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .problem-card {
+            position: relative;
+            padding: 28px;
+            border-radius: 20px;
+            overflow: hidden;
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.35);
+        }
+
+        .problem-card::before {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            right: -70px;
+            top: -70px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.12);
+            filter: blur(20px);
+        }
+
+        .problem-number {
+            color: #a78bfa;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            margin-bottom: 10px;
+        }
+
+        .problem-card h3 {
+            position: relative;
+            font-size: 23px;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .info {
+            position: relative;
+            margin-bottom: 17px;
+        }
+
+        .info:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            display: block;
+            color: #c4b5fd;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .info p {
+            color: #cbd5e1;
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .impact-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 21px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .impact-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .impact-high {
+            color: #fecaca;
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.20);
+        }
+
+        .impact-medium {
+            color: #fde68a;
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.20);
+        }
+
+        .impact-low {
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, 0.14);
+            border: 1px solid rgba(34, 197, 94, 0.20);
+        }
+
+        /* ASSUMPTIONS / RECOMMENDATIONS */
+
+        .secondary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .secondary-card {
+            padding: 25px;
+            border-radius: 20px;
+        }
+
+        .secondary-card h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .secondary-card ul,
+        .secondary-card ol {
+            padding-left: 20px;
+            color: #cbd5e1;
+        }
+
+        .secondary-card li {
+            margin-bottom: 9px;
+            line-height: 1.55;
+            font-size: 14px;
+        }
+
+        /* ERROR */
+
+        .error {
+            display: none;
+            margin-top: 25px;
+            padding: 16px 18px;
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            border-radius: 13px;
+            background: rgba(127, 29, 29, 0.20);
+            color: #fecaca;
+            line-height: 1.5;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        /* NEW ANALYSIS */
+
+        .new-analysis {
+            display: none;
+            margin: 35px auto 0;
+            padding: 13px 20px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: rgba(255,255,255,0.05);
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .new-analysis:hover {
+            background: rgba(255,255,255,0.09);
+        }
+
+        .new-analysis.active {
+            display: block;
+        }
+
+        /* FOOTER */
+
+        footer {
+            margin-top: 70px;
+            text-align: center;
+            color: #475569;
+            font-size: 13px;
+        }
+
+        /* ANIMATIONS */
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 700px) {
+            .container {
+                width: min(100% - 22px, 1050px);
+                padding-top: 45px;
+            }
+
+            .form-card {
+                padding: 22px;
+            }
+
+            h1 {
+                font-size: 47px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .secondary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .problem-card {
+                padding: 22px;
+            }
+        }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* THREE.JS 3D BACKGROUND */
+
+#three-bg {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+}
+
+body > *:not(#three-bg) {
+    position: relative;
+    z-index: 1;
+}
+
+
+</style>
+</head>
+
+<body>
+
+</script>
+    <canvas id="three-bg"></canvas>
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+const canvas = document.getElementById("three-bg");
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
+
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    alpha: true,
+    antialias: true
+});
+
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+scene.background = new THREE.Color(0x050712);
+
+/* ---------- MAIN 3D SHAPE ---------- */
+
+const geometry = new THREE.IcosahedronGeometry(1.4, 1);
+
+const material = new THREE.MeshBasicMaterial({
+    color: 0x7c3aed,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.35
+});
+
+const shape = new THREE.Mesh(geometry, material);
+
+scene.add(shape);
+
+/* ---------- PARTICLES ---------- */
+
+const particleCount = 1200;
+
+const positions = new Float32Array(particleCount * 3);
+
+for (let i = 0; i < particleCount * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 14;
+}
+
+const particlesGeometry = new THREE.BufferGeometry();
+
+particlesGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+);
+
+const particlesMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.025,
+    transparent: true,
+    opacity: 0.6
+});
+
+const particles = new THREE.Points(
+    particlesGeometry,
+    particlesMaterial
+);
+
+scene.add(particles);
+
+/* ---------- ANIMATION ---------- */
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    shape.rotation.x += 0.0015;
+    shape.rotation.y += 0.002;
+
+    particles.rotation.y += 0.0003;
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+/* ---------- RESIZE ---------- */
+
+window.addEventListener("resize", function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
+    );
+});
+</script>
+
+<main class="container">
+
+        <section class="hero">
+
+            <div class="badge">
+                <span class="badge-dot"></span>
+                AI BUSINESS INTELLIGENCE
+            </div>
+
+            <h1>AI Business<br>Problem Finder</h1>
+
+            <p>
+                Discover operational problems in your business
+                and uncover practical AI-powered solutions.
+            </p>
+
+        </section>
+
+
+        <section class="glass-card form-card">
+
+            <div class="form-header">
+                <h2>Analyze your business</h2>
+                <p>
+                    Tell us a little about the business and let AI
+                    identify its biggest operational opportunities.
+                </p>
+            </div>
+
+
+            <form id="businessForm">
+
+                <div class="field">
+                    <label for="business">Business Type</label>
+
+                    <input
+                        id="business"
+                        type="text"
+                        placeholder="e.g. Restaurant"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label for="location">Location</label>
+
+                    <input
+                        id="location"
+                        type="text"
+                        placeholder="e.g. Naples, Italy"
+                        required
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label for="employees">Number of Employees</label>
+
+                    <input
+                        id="employees"
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 10"
+                        required
+                    >
+                </div>
+
+
+                <button
+                    id="analyzeButton"
+                    class="analyze-button"
+                    type="submit"
+                >
+                    Analyze Business
+                </button>
+
+            </form>
+
+
+            <div id="error" class="error"></div>
+
+        </section>
+
+
+        <div id="loading" class="loading">
+
+            <div class="spinner"></div>
+
+            <p>
+                AI is analyzing your business...
+            </p>
+
+        </div>
+
+
+        <section id="results" class="results">
+
+            <div class="results-heading">
+
+                <span>Analysis complete</span>
+
+                <h2>AI Analysis</h2>
+
+            </div>
+
+
+            <div id="problemGrid" class="problem-grid"></div>
+
+
+            <div class="secondary-grid">
+
+                <div
+                    id="assumptionsCard"
+                    class="glass-card secondary-card"
+                >
+                    <h3>Assumptions</h3>
+                    <ul id="assumptionsList"></ul>
+                </div>
+
+
+                <div
+                    id="recommendationsCard"
+                    class="glass-card secondary-card"
+                >
+                    <h3>Recommendations</h3>
+                    <ol id="recommendationsList"></ol>
+                </div>
+
+            </div>
+
+
+            <button
+                id="newAnalysis"
+                class="new-analysis"
+                type="button"
+            >
+                ↻ New Analysis
+            </button>
+
+        </section>
+
+
+        <footer>
+            AI Business Problem Finder · Built with Python, JavaScript & AI
+        </footer>
+
+    </main>
+
+
+    <script>
+
+        const form = document.getElementById("businessForm");
+
+        const analyzeButton =
+            document.getElementById("analyzeButton");
+
+        const loading =
+            document.getElementById("loading");
+
+        const results =
+            document.getElementById("results");
+
+        const errorBox =
+            document.getElementById("error");
+
+        const problemGrid =
+            document.getElementById("problemGrid");
+
+        const assumptionsList =
+            document.getElementById("assumptionsList");
+
+        const recommendationsList =
+            document.getElementById("recommendationsList");
+
+        const newAnalysis =
+            document.getElementById("newAnalysis");
+
+
+analyzeButton.addEventListener("click", async function(event) {
+
+            event.preventDefault();
+
+            errorBox.classList.remove("active");
+
+            results.classList.remove("active");
+
+            newAnalysis.classList.remove("active");
+
+            loading.classList.add("active");
+
+            analyzeButton.disabled = true;
+
+            analyzeButton.textContent = "Analyzing...";
+
+
+            const business =
+                document.getElementById("business").value.trim();
+
+            const location =
+                document.getElementById("location").value.trim();
+
+            const employees =
+                document.getElementById("employees").value.trim();
+
+
+            try {
+
+                const response = await fetch("/analyze", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        business: business,
+                        location: location,
+                        employees: employees
+                    })
+
+                });
+
+
+                const data = await response.json();
+
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "Analysis failed."
+                    );
+                }
+
+
+                displayAnalysis(data.analysis);
+
+
+                results.classList.add("active");
+
+                newAnalysis.classList.add("active");
+
+
+                window.scrollTo({
+                    top: results.offsetTop - 30,
+                    behavior: "smooth"
+                });
+
+
+            } catch (error) {
+
+                errorBox.textContent =
+                    error.message || "Something went wrong.";
+
+                errorBox.classList.add("active");
+
+            } finally {
+
+                loading.classList.remove("active");
+
+                analyzeButton.disabled = false;
+
+                analyzeButton.textContent =
+                    "Analyze Business";
+
+            }
+
+        });
+
+
+        function displayAnalysis(text) {
+
+            problemGrid.innerHTML = "";
+
+            assumptionsList.innerHTML = "";
+
+            recommendationsList.innerHTML = "";
+
+
+            const sections =
+                text.split(/\n(?=\d+\.\s)/);
+
+
+            const problems = sections
+                .filter(section => /^\d+\.\s/.test(section.trim()))
+                .slice(0, 3);
+
+
+            problems.forEach((problem, index) => {
+
+                const lines =
+                    problem
+                        .split("\n")
+                        .map(line => line.trim())
+                        .filter(Boolean);
+
+
+                const title =
+                    lines[0]
+                        .replace(/^d+.s*/, "")
+                        .trim();
+
+
+                const problemText =
+                    extractLine(lines, "Problem:");
+
+                const solutionText =
+                    extractLine(lines, "AI Solution:");
+
+                const impactText =
+                    extractLine(lines, "Impact:");
+
+
+                const impact =
+                    getImpact(impactText);
+
+
+                const card =
+                    document.createElement("article");
+
+
+                card.className =
+                    "glass-card problem-card";
+
+
+                card.style.animationDelay =
+                    `${index * 0.12}s`;
+
+
+                card.innerHTML = `
+
+                    <div class="problem-number">
+                        PROBLEM ${String(index + 1).padStart(2, "0")}
+                    </div>
+
+                    <h3>${escapeHtml(title)}</h3>
+
+                    <div class="info">
+                        <span class="info-label">
+                            Problem
+                        </span>
+
+                        <p>
+                            ${escapeHtml(problemText)}
+                        </p>
+                    </div>
+
+                    <div class="info">
+                        <span class="info-label">
+                            AI Solution
+                        </span>
+
+                        <p>
+                            ${escapeHtml(solutionText)}
+                        </p>
+                    </div>
+
+                    <div class="impact-row">
+
+                        <span class="info-label">
+                            Impact
+                        </span>
+
+                        <span class="impact-badge ${impact.className}">
+                            ${escapeHtml(impact.label)}
+                        </span>
+
+                    </div>
+
+                `;
+
+
+                problemGrid.appendChild(card);
+
+            });
+
+
+            extractSecondarySections(
+                text
+            );
+
+        }
+
+
+        function extractLine(lines, label) {
+
+            const line =
+                lines.find(item =>
+                    item.toLowerCase().startsWith(
+                        label.toLowerCase()
+                    )
+                );
+
+
+            if (!line) {
+                return "No information provided.";
+            }
+
+
+            return line
+                .substring(label.length)
+                .trim();
+
+        }
+
+
+        function getImpact(text) {
+
+            const lower =
+                text.toLowerCase();
+
+
+            if (lower.includes("high")) {
+
+                return {
+                    label: "HIGH",
+                    className: "impact-high"
+                };
+
+            }
+
+
+            if (lower.includes("medium")) {
+
+                return {
+                    label: "MEDIUM",
+                    className: "impact-medium"
+                };
+
+            }
+
+
+            return {
+                label: "LOW",
+                className: "impact-low"
+            };
+
+        }
+
+
+        function extractSecondarySections(text) {
+
+            const assumptionsMatch =
+                text.match(
+                    /ASSUMPTIONS:s*([sS]*?)(?=ns*RECOMMENDATIONS:|$)/i
+                );
+
+
+            const recommendationsMatch =
+                text.match(
+                    /RECOMMENDATIONS:s*([sS]*)$/i
+                );
+
+
+            if (assumptionsMatch) {
+
+                const items =
+                    assumptionsMatch[1]
+                        .split("\n")
+                        .map(item => item.trim())
+                        .filter(item =>
+                            item.startsWith("-")
+                        );
+
+
+                items.forEach(item => {
+
+                    const li =
+                        document.createElement("li");
+
+                    li.textContent =
+                        item.replace(/^-s*/, "");
+
+                    assumptionsList.appendChild(li);
+
+                });
+
+            }
+
+
+            if (recommendationsMatch) {
+
+                const items =
+                    recommendationsMatch[1]
+                        .split("\n")
+                        .map(item => item.trim())
+                        .filter(item =>
+                            /^\d+\./.test(item)
+                        );
+
+
+                items.forEach(item => {
+
+                    const li =
+                        document.createElement("li");
+
+                    li.textContent =
+                        item.replace(/^d+.s*/, "");
+
+                    recommendationsList.appendChild(li);
+
+                });
+
+            }
+
+        }
+
+
+        function escapeHtml(value) {
+
+            const div =
+                document.createElement("div");
+
+            div.textContent =
+                value || "";
+
+            return div.innerHTML;
+
+        }
+
+
+        newAnalysis.addEventListener(
+            "click",
+            function() {
+
+                results.classList.remove("active");
+
+                newAnalysis.classList.remove("active");
+
+                errorBox.classList.remove("active");
+
+                form.reset();
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+
+            }
+        );
+
+            document.addEventListener("mousemove", function(event) {
+
+            const cards =
+                document.querySelectorAll(".problem-card");
+
+            cards.forEach(function(card) {
+
+                const rect =
+                    card.getBoundingClientRect();
+
+                const x =
+                    event.clientX - rect.left;
+
+                const y =
+                    event.clientY - rect.top;
+
+                const centerX =
+                    rect.width / 2;
+
+                const centerY =
+                    rect.height / 2;
+
+                const rotateX =
+                    ((y - centerY) / centerY) * -4;
+
+                const rotateY =
+                    ((x - centerX) / centerX) * 4;
+
+                card.style.transform =
+                    `perspective(700px)
+                     rotateX(${rotateX}deg)
+                     rotateY(${rotateY}deg)
+                     translateY(-4px)`;
+
+            });
+
+        });
+
+
+           const cards = document.querySelectorAll(".problem-card");
+
+cards.forEach(function(card) {
+
+    card.addEventListener("mousemove", function(event) {
+
+        const rect = card.getBoundingClientRect();
+
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = ((y - centerY) / centerY) * -5;
+        const rotateY = ((x - centerX) / centerX) * 5;
+
+        card.style.transform =
+            `perspective(800px)
+             rotateX(${rotateX}deg)
+             rotateY(${rotateY}deg)
+             translateY(-6px)
+             scale(1.02)`;
+
+    });
+
+    card.addEventListener("mouseleave", function() {
+
+        card.style.transform =
+            "perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1)";
+
+    });
+        });
+
+</script>
+<canvas id="three-bg"></canvas>
+
+<script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+    const canvas = document.getElementById("three-bg");
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+
+    camera.position.z = 5;
+
+    const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        alpha: true,
+        antialias: true
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const geometry = new THREE.IcosahedronGeometry(1.5, 2);
+
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x7c3aed,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.18
+    });
+
+    const shape = new THREE.Mesh(geometry, material);
+
+    scene.add(shape);
+
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particleCount = 800;
+
+    const positions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount * 3; i++) {
+        positions[i] = (Math.random() - 0.5) * 30;
+    }
+
+    particlesGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+    );
+
+    const particlesMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.025,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    const particles = new THREE.Points(
+        particlesGeometry,
+        particlesMaterial
+    );
+
+    scene.add(particles);
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        shape.rotation.x += 0.0015;
+        shape.rotation.y += 0.002;
+
+        particles.rotation.y += 0.0003;
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener("resize", function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+
+</body>
+</html>
