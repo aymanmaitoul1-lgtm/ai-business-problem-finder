@@ -187,7 +187,7 @@ print("http://localhost:8000")
 print("=" * 60)
 
 server = ThreadingHTTPServer(
-    ("localhost", 8000),
+    ("0.0.0.0", int(os.getenv("PORT", 8000))),
     RequestHandler
 )
 
